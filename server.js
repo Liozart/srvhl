@@ -40,7 +40,7 @@ connection.query('SELECT * from t_sales LIMIT 100', function(err, rows, fields) 
         console.log("getSales query success");
     }
     else {
-        res.json("query failed");
+        res.json("erreur : query failed");
         console.log("getSales query failed");
     }
   });
@@ -58,18 +58,17 @@ app.post("/createUser", function(req, res){
                 connection.query(query, function (err, rows, fields) {
                     if (!err) {
                         var t = genToken();
-                        res.header('token', t);
-                        res.send("Création du compte réussie");
+                        res.json(t);
                         console.log("createUser query success");
                     }
                     else {
-                        res.json("Création du compte échouée");
+                        res.json("erreur : Création du compte échouée");
                         console.log("createUser query failed");
                     }
                 });
             }
         }else {
-            res.json("Erreur ; Création du compte échouée");
+            res.json("erreur : Création du compte échouée");
             console.log("createUser query failed");
         }
     });
@@ -80,16 +79,17 @@ app.post("/connectUser", function(req, res){
     connection.query(query, function(err, rows, fields) {
         if (!err) {
             if (rows.length === 1) {
-                res.json("Connexion réussie");
+                var t = genToken();
+                res.json(t);
                 console.log("connectUser query success");
             }
             else {
-                res.json("Connexion échouée");
+                res.json("erreur : Connexion échouée");
                 console.log("connectUser query failed");
             }
         }
         else {
-            res.json("Erreur ; Connexion échouée");
+            res.json("erreur : Connexion échouée");
             console.log("connectUser query failed");
         }
     });
@@ -101,12 +101,13 @@ function genToken() {
     do {
         for (var i = 0; i < 24; i++)
             t += range.charAt(Math.floor(Math.random() * range.length));
-        if (!tokens.contains(t)) {
-            tokens.add(t);
+        if (!tokens.includes(t)) {
+            tokens.push(t);
             gud = true;
         }
     } while (!gud);
 
+    console.log(tokens);
     return t;
 }
 
