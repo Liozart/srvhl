@@ -14,7 +14,7 @@ var tokens = [];
 /* Accepting CORS for all requests */
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, email, password, token");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, email, password, shopid, token");
     next();
 });
 app.use(express.json());       // to support JSON-encoded bodies
@@ -45,11 +45,35 @@ connection.query('SELECT * from t_sales LIMIT 100', function(err, rows, fields) 
     }
   });
 });
+app.post("/getSalesFromShop",function(req,res){
+    connection.query('SELECT * from t_sales WHERE id_shop = ' + req.headers.shopid + " LIMIT 100", function(err, rows, fields) {
+        if (!err) {
+            res.json(rows);
+            console.log("getSalesFromShop query success");
+        }
+        else {
+            res.json("erreur : query failed");
+            console.log("getSalesFromShop query failed");
+        }
+    });
+});
+
+app.get("/getShops",function(req,res){
+    connection.query('SELECT * from t_shops LIMIT 100', function(err, rows, fields) {
+        if (!err) {
+            res.json(rows);
+            console.log("getShops query success");
+        }
+        else {
+            res.json("erreur : query failed");
+            console.log("getShops query failed");
+        }
+    });
+});
 
 app.post("/createUser", function(req, res){
     var querytest = 'SELECT email FROM t_users WHERE email = "' + req.headers.email + '"';
     var query = 'INSERT INTO t_users (email, password) VALUES ("' + req.headers.email + '","' + req.headers.password+ '")';
-    var isNew = false;
     connection.query(querytest, function(err, rows, fields) {
         if (!err) {
             if (rows.length) {
@@ -57,8 +81,7 @@ app.post("/createUser", function(req, res){
             } else {
                 connection.query(query, function (err, rows, fields) {
                     if (!err) {
-                        var t = genToken();
-                        res.json(t);
+                        res.json('ok');
                         console.log("createUser query success");
                     }
                     else {
