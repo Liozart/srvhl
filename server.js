@@ -1,5 +1,8 @@
-var express    = require("express");
-var mysql      = require('mysql');
+const express    = require("express");
+const mysql      = require('mysql');
+const request = require('request');
+const Parser = require('rss-parser');
+const parser = new Parser();
 
 var connection = mysql.createConnection({
   host     : 'localhost',
@@ -7,9 +10,13 @@ var connection = mysql.createConnection({
   password : '',
   database : 'hilive'
 });
+
 var app = express();
 
 var tokens = [];
+
+const url_getCityEvents = 'https://ladecadanse.darksite.ch/rss.php?type=evenements_auj';
+const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
 
 /* Accepting CORS for all requests */
 app.use(function (req, res, next) {
@@ -45,6 +52,19 @@ connection.query('SELECT * from t_sales LIMIT 100', function(err, rows, fields) 
     }
   });
 });
+
+app.get("/getCityEvents",function(req,res){
+    parser.parseURL(url_getCityEvents, function(err, feed) {
+        if (!err) {
+            res.json(feed);
+        }
+        else {
+            res.json("erreur : query failed");
+            console.log("getCityEvents query failed");
+        }
+    });
+});
+
 app.post("/getSalesFromShop",function(req,res){
     connection.query('SELECT * from t_sales WHERE id_shop = ' + req.headers.shopid + " LIMIT 100", function(err, rows, fields) {
         if (!err) {
@@ -74,6 +94,7 @@ app.get("/getShops",function(req,res){
 app.post("/createUser", function(req, res){
     var querytest = 'SELECT email FROM t_users WHERE email = "' + req.headers.email + '"';
     var query = 'INSERT INTO t_users (email, password) VALUES ("' + req.headers.email + '","' + req.headers.password+ '")';
+    console.log(querytest + "\n" + query);
     connection.query(querytest, function(err, rows, fields) {
         if (!err) {
             if (rows.length) {
